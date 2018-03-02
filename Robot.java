@@ -38,13 +38,24 @@ public class Robot {
               String line;
             line = reader.readLine();
               while (line != null) {
-                  System.out.println(line);
-                     if(line.indexOf("User-Agent:")==0  ) //checks if this line conatins user-agent:
+                 System.out.println(line);
+                     if(line.indexOf("User-Agent:")==0  ) //checks if this line conatins user-agent: A and a later
                      {
-                        System.out.println("found the user agent");
+                       // System.out.println("found the user agent");
                         String userAgent=line.substring("User-Agent:".length()); //get the words beside user-agent:
-                        System.out.println(userAgent);
-                        if(!" *".equals(userAgent)   || !(userAgent1.equalsIgnoreCase(userAgent)))
+                        //System.out.println(userAgent);
+                        if(!(" *".equals(userAgent))   && !(userAgent1.equalsIgnoreCase(userAgent)))
+                        {
+                            System.out.println("host is allowed");
+                         return true;
+                        }
+                     }
+                     if(line.indexOf("User-agent:")==0  ) //checks if this line conatins user-agent: A and a later
+                     {
+                       // System.out.println("found the user agent");
+                        String userAgent=line.substring("User-Agent:".length()); //get the words beside user-agent:
+                       // System.out.println(userAgent); 
+                        if(!" *".equals(userAgent)   && !(userAgent1.equalsIgnoreCase(userAgent)))
                         {
                             System.out.println("host is allowed");
                          return true;

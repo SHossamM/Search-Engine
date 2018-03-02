@@ -14,3 +14,7 @@ Notcorrect:
 https://searchengineland.com/robots.txt
 https://stackoverflow.com/robots.txt
 
+
+
+gives IO exception:
+https://www.goto.com/robots.txt

@@ -20,7 +20,7 @@ public class CrawlerThread implements Runnable {
      final static int stoppingCriteria = 5000;
      static int FetchedCount=0;
      static Queue<Document> DocumentsQueue=new LinkedList<>(); //list of fetched documents with their url
-     static Queue<String> urlsQueue=new LinkedList<>(); //queue of unique urls to be crawled
+    public static Queue<String> urlsQueue=new LinkedList<>(); //queue of unique urls to be crawled
      static Set<String> visited = new HashSet<>();//set of unique links that are visited returns  false for duplicate elements
        
     /**
@@ -68,22 +68,24 @@ public class CrawlerThread implements Runnable {
         {
           result.add(link.attr("abs:href")); // removing <a tag and href attribute
         }
+        System.out.println(Thread.currentThread().getName()+"Extracted Links");       
       return result;
    }
   
     /** 
      * pops a link from queue 
      */
+     
 void crawl() throws MalformedURLException{
       //get / pop a url from qeue
         String url,link;
         Document doc;
-   
+
  while(FetchedCount<stoppingCriteria)
    {            
     synchronized(urlsQueue)
     {
-        System.out.println("Thread id: "+Thread.currentThread().getName()+ " tried to pop off the queue");
+      //  System.out.println("Thread id: "+Thread.currentThread().getName()+ " tried to pop off the queue");
       url=urlsQueue.poll();//get a url from ueue to process if queue is emepty url =null 
     }
       if(url!=null)//queue is not empty

@@ -8,19 +8,20 @@
  *
  * @author Sahar
  */
-public class CrawlController implements Runnable {//crawler would be one of the threads in the whole search engine so it implements runable
+public class CrawlController  {//crawler would be one of the threads in the whole search engine so it implements runable
   int threadsNumber;
   public CrawlController(int threadsNumber)
   {
       this.threadsNumber=threadsNumber;
   }
-  @Override
-  public void run() //should create n threads and each crawl 
+
+ public void Start() //should create n threads and each crawl 
   {
       for(int i=0; i<threadsNumber ;i++)
       {
       Thread th=new Thread(new CrawlerThread());
       th.setName("Thread"+i);
+      System.out.println("Thread"+i+"Created");
       th.start();
           
       }
