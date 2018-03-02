@@ -1,0 +1,16 @@
+Correct ones as :
+https://www.w3schools.com/robots.txt
+https://www.google.com.eg/robots.txt
+https://www.duolingo.com/robots.txt
+http://www.crunchyroll.com/robots.txt
+http://www.dictionary.com/robots.txt
+https://www.codeproject.com/robots.txt
+
+Notfound:
+http://www.elearn.eng.cu.edu.eg/robots.txt
+
+
+Notcorrect:
+https://searchengineland.com/robots.txt
+https://stackoverflow.com/robots.txt
+
