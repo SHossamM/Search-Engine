@@ -20,9 +20,12 @@ public class CrawlerThread implements Runnable {
      final static int stoppingCriteria = 5000;
      static int FetchedCount=0;
      static Queue<Document> DocumentsQueue=new LinkedList<>(); //list of fetched documents with their url
-    public static Queue<String> urlsQueue=new LinkedList<>(); //queue of unique urls to be crawled
+    public  Queue<String> urlsQueue;
      static Set<String> visited = new HashSet<>();//set of unique links that are visited returns  false for duplicate elements
-       
+       CrawlerThread(  Queue<String> urlsQueue)
+       {
+           this.urlsQueue=urlsQueue;
+       }
     /**
      * if it is html it download it as a document and adds it to a queue 
      * @param url
@@ -46,6 +49,8 @@ public class CrawlerThread implements Runnable {
         DocumentsQueue.add(doc);
         System.out.println(Thread.currentThread().getName()+"Added a document to the queue");
         Url.writeURLtoFile(URL, Integer.toString(DocumentsQueue.size()-1)+".html");
+         FetchedCount++;
+         System.out.println("Count= "+FetchedCount);
     }
      
      
@@ -115,8 +120,7 @@ void crawl() throws MalformedURLException{
 //                   {
                        synchronized(urlsQueue)
                        {
-                        urlsQueue.add(link);
-                        FetchedCount++;
+                        urlsQueue.add(link);                        
                        }
 //                   }
                  }
@@ -127,7 +131,8 @@ void crawl() throws MalformedURLException{
            
            }  
 
-        }   
+        } 
+       
     }
 }
      

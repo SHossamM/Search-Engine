@@ -21,7 +21,7 @@ public class Robot {
     {
        URL URL=new URL(url);
        String  host= URL.getHost().toLowerCase();//get the host of this url which is the domain name i.e http://codeproject.com return codeproject.com 
-       System.out.println("host: "+host); 
+       //System.out.println("host: "+host); 
              // Retrieve host's disallow list from cache.
        ArrayList disallowList =(ArrayList) disallowListCache.get(host);
               // If list is not in the cache, download and cache it.
@@ -38,7 +38,7 @@ public class Robot {
               String line;
             line = reader.readLine();
               while (line != null) {
-                 System.out.println(line);
+               //  System.out.println(line);
                      if(line.indexOf("User-Agent:")==0  ) //checks if this line conatins user-agent: A and a later
                      {
                        // System.out.println("found the user agent");
