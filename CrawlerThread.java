@@ -115,7 +115,7 @@ public class CrawlerThread implements Runnable {
             {
                 
                 
-               if(Robot.isRobotAllowed(url))
+               if(Robot.isRobotAllowed(url,userAgent))
                {
                 //save and get document from url here since url from queue so document is unique
                  doc = getHmlDocument(url);

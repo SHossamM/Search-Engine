@@ -1,38 +1,29 @@
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
  * 
  * @author Sahar
  */
 public class Robot {
    static  public HashMap disallowListCache = new HashMap();///////
-    // Check if robot is allowed to access the given URL.
-    
-    /**
+    // Check if robot is allowed to access the given URL. 
+    /**Robot
      * checks whether robot is allowed or not
      * @param url
      * @return  true if robot is allowed
      * @throws java.net.MalformedURLException
      */
- public static boolean isRobotAllowed(String url) throws MalformedURLException
+ public static boolean isRobotAllowed(String url,String userAgent1) throws MalformedURLException
     {
         URL URL=new URL(url);
-       String  host= URL.getHost().toLowerCase();//get the hos of this url
-
-                // Retrieve host's disallow list from cache.
-         ArrayList disallowList =(ArrayList) disallowListCache.get(host);
+       String  host= URL.getHost().toLowerCase();//get the host of this url which is the domain name i.e http://codeproject.com return codeproject.com 
+       System.out.println("host: "+host); 
+             // Retrieve host's disallow list from cache.
+       ArrayList disallowList =(ArrayList) disallowListCache.get(host);
               // If list is not in the cache, download and cache it.
         if (disallowList == null) 
         {
@@ -40,11 +31,27 @@ public class Robot {
                     try
             {
               URL robotsFileUrl= new URL("http://"+ host+"/robots.txt"); // if robots.txt not found this returns an exception then robot is allowed
-              //open connection to robots file url for reading
+                   // System.out.println("robotsFileUrl: "+robotsFileUrl);              
+            //open connection to robots file url for reading
               BufferedReader reader =new BufferedReader(new InputStreamReader(robotsFileUrl.openStream()));
               //Read it and creat list of dissallowed paths
               String line;
-              while ((line = reader.readLine()) != null) {
+            line = reader.readLine();
+              while (line != null) {
+                  System.out.println(line);
+                     if(line.indexOf("User-Agent:")==0  ) //checks if this line conatins user-agent:
+                     {
+                        System.out.println("found the user agent");
+                        String userAgent=line.substring("User-Agent:".length()); //get the words beside user-agent:
+                        System.out.println(userAgent);
+                        if(!" *".equals(userAgent)   || !(userAgent1.equalsIgnoreCase(userAgent)))
+                        {
+                            System.out.println("host is allowed");
+                         return true;
+                        }
+                     }
+               
+                 // System.out.println("line.indexOf(\"Disallow:\"): "+line.indexOf("Disallow:"));
                     if (line.indexOf("Disallow:") == 0) {
                     String disallowPath =line.substring("Disallow:".length());
                     // Check disallow path for comments and remove if present.
@@ -58,6 +65,7 @@ public class Robot {
                     // Add disallow path to list.
                     disallowList.add(disallowPath);
                     }
+                    line = reader.readLine();
                 }
 
                 // Add new disallow list to cache.
@@ -68,7 +76,8 @@ public class Robot {
         {
     /* Assume robot is allowed since an exception
     is thrown if the robot file doesn't exist. */
-        return true;
+       return true;
+           // System.out.println("true");--> sh3'ala 5las kda lw website mafehosh robots.txt m3naha eny allowed
         }
         }
         /* Loop through disallow list to see if
@@ -79,10 +88,11 @@ public class Robot {
       for (int i = 0; i < disallowList.size(); i++) {
           disallow = (String) disallowList.get(i); //get string path of the first dissallowed oath
           if (file.startsWith(disallow)) {
-        return false;
+       return false;
 
 }
 }
- return true;
+return true;
     }    
+  
 }
