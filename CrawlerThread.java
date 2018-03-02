@@ -73,7 +73,7 @@ public class CrawlerThread implements Runnable {
         {
           result.add(link.attr("abs:href")); // removing <a tag and href attribute
         }
-        System.out.println(Thread.currentThread().getName()+"Extracted Links");       
+        System.out.println(Thread.currentThread().getName()+" Extracted Links");       
       return result;
    }
   
@@ -95,15 +95,15 @@ void crawl() throws MalformedURLException{
     }
       if(url!=null)//queue is not empty
         {
-           System.out.println("Thread id: "+Thread.currentThread().getName()+ " popped a url from the queue");
-          if(Robot.isRobotAllowed(url,userAgent)) //check1 RobotAllowed
+           System.out.println(Thread.currentThread().getName()+ " popped a url from the queue");
+           if(Url.verifyUrl(url)!=null) //check1 that the url is verified
             {
-               if(Url.verifyUrl(url)!=null) //check2 that the url is verified
-               {
-                if(url.contains("#"))  //check3 removing hashes as they mean same page
+                if(url.contains("#"))  //check2 removing hashes as they mean same page
                 {
                     url=url.substring(0,url.indexOf('#'));
                 }
+                if(Robot.isRobotAllowed(url,userAgent)) //check3 RobotAllowed
+                {
                 if(visited.add(url)) //check4 not duplicate and visited before
                 {
                  doc = getHmlDocument(url);
