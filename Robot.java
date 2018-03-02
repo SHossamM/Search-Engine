@@ -9,7 +9,7 @@ import java.util.HashMap;
  * @author Sahar
  */
 public class Robot {
-   static  public HashMap disallowListCache = new HashMap();///////
+    static  public HashMap disallowListCache = new HashMap();///////
     // Check if robot is allowed to access the given URL. 
     /**Robot
      * checks whether robot is allowed or not
@@ -19,7 +19,7 @@ public class Robot {
      */
  public static boolean isRobotAllowed(String url,String userAgent1) throws MalformedURLException
     {
-        URL URL=new URL(url);
+       URL URL=new URL(url);
        String  host= URL.getHost().toLowerCase();//get the host of this url which is the domain name i.e http://codeproject.com return codeproject.com 
        System.out.println("host: "+host); 
              // Retrieve host's disallow list from cache.
