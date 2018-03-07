@@ -60,4 +60,70 @@ public  Queue<String> RetriveNonVisited() throws SQLException
   return seedSet;
 }
 
+/**
+ * 
+     * @param url
+     * @throws java.sql.SQLException
+ */
+public void InsertLink(String url) 
+{
+        try 
+         {
+             CallableStatement cStmt = connection.prepareCall("{call InsertLink(?)}"); //throws sqlexception -->check later
+            cStmt.setString("u", url);
+            cStmt.execute();
+        }
+        catch(SQLException e)
+        {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+}
+
+/**
+ * 
+     * @param url
+     * @return 
+     * @throws java.sql.SQLException
+ */
+public boolean CheckUrlExists(String url) 
+{
+    
+    try{
+
+    CallableStatement cStmt=connection.prepareCall("{call CheckUrlExists(?,?)}"); 
+    cStmt.setString("u", url);
+    cStmt.registerOutParameter(2, java.sql.Types.INTEGER);
+ 
+   cStmt.execute();
+     if(cStmt.getInt(2)==1)
+     {     
+         
+         cStmt.close();
+
+         return true;
+     }
+    cStmt.close();
+
+    return false;
+    }
+    catch(SQLException e)
+    {
+        System.out.println("SQLException: " + e.getMessage());
+    }
+    return false;
+}
+
+public void MarkVisited(String url)
+{
+    try 
+         {
+            CallableStatement cStmt = connection.prepareCall("{call MarkVisited(?)}"); //throws sqlexception -->check later
+            cStmt.setString("u", url);
+            cStmt.execute();
+        }
+        catch(SQLException e)
+        {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+}
 }
