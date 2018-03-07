@@ -126,4 +126,20 @@ public void MarkVisited(String url)
             System.out.println("SQLException: " + e.getMessage());
         }
 }
+
+public int GetVisitedCount()
+{
+    try 
+         {
+            CallableStatement cStmt = connection.prepareCall("{call CountVisited(?)}"); //throws sqlexception -->check later
+           cStmt.registerOutParameter(1, java.sql.Types.INTEGER);
+            cStmt.execute();
+            return  cStmt.getInt(1);
+        }
+        catch(SQLException e)
+        {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+    return 0;
+}
 }

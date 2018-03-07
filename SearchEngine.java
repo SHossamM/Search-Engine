@@ -14,15 +14,19 @@ public class SearchEngine {
     
     // Thread t=new Thread(ct);
     // t.start();
+   // DataBase db=new DataBase();
+   // db.InsertLink("http://www.web-directories.ws/");
       
       //__.shofy mwdo3 enk tkony el 3 browsers m3 b3d
-//      DataBase db=new DataBase();
+     DataBase db=new DataBase();
 //      Queue<String> seedSet=db.RetriveNonVisited();
 //      for(int i=0;i<seedSet.size();i++)
 //      {
 //          System.out.println(seedSet.poll());
 //                  
-//      }
+//  
+//boolean t=db.CheckUrlExists("hkkk");    
+      //  System.out.println(db.GetVisitedCount());
    }
    
 }

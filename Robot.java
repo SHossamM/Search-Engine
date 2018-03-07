@@ -46,7 +46,7 @@ public class Robot {
                         //System.out.println(userAgent);
                         if(!(" *".equals(userAgent))   && !(userAgent1.equalsIgnoreCase(userAgent))) //-->recheck later
                         {
-                            System.out.println(Thread.currentThread().getName()+"sees its host  allowed");
+                            //System.out.println(Thread.currentThread().getName()+"sees its host  allowed");
                          return true;
                         }
                      }
@@ -57,7 +57,7 @@ public class Robot {
                        // System.out.println(userAgent); 
                         if(!" *".equals(userAgent)   && !(userAgent1.equalsIgnoreCase(userAgent)))
                         {
-                            System.out.println("host is allowed");
+                            //System.out.println("host is allowed");
                          return true;
                         }
                      }
