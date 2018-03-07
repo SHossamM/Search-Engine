@@ -20,15 +20,20 @@ public class DataBase {
     private static final String password = "1234" ; 
     
     private static java.sql.Connection connection;
-public DataBase() throws ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException{
-    
+public DataBase() {
+    try{
         Class.forName(driver).newInstance();// force it to be included in the final war,
         connection=DriverManager.getConnection(dBURL,userName,password);
         System.out.println("Connecting to database...");
-    
-    
+        }
+    catch(Exception e)
+    {
+        e.printStackTrace();
        // System.out.println("Error: unable to load driver class!");
-        //System.exit(1);  
+        System.exit(1);  
+    }
+    
+
     
 }
 
@@ -43,12 +48,12 @@ Retreves nonvisited links to a queue
 public  Queue<String> RetriveNonVisited() throws SQLException
 {
   Queue<String> seedSet=new  LinkedList<String>(); 
-  CallableStatement cStmt=connection.prepareCall("{exec RetriveNonVisited}"); //throws sqlexception -->check later
+  CallableStatement cStmt=connection.prepareCall("{call RetriveNonVisited}"); //throws sqlexception -->check later
   cStmt.execute();
-  ResultSet result=cStmt.getResultSet();
+  ResultSet result=cStmt.executeQuery();
   while(result.next())//while there are rows in returned result set
   {
-   seedSet.add(result.getNString(0)); //adding all non visited to urlqueues
+   seedSet.add(result.getString("url")); //adding all non visited to urlqueues
   }
   result.close();
   cStmt.close();
