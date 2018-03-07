@@ -17,10 +17,10 @@ public class Robot {
      * @return  true if robot is allowed
      * @throws java.net.MalformedURLException
      */
- public static boolean isRobotAllowed(String url,String userAgent1) throws MalformedURLException
+ public static boolean isRobotAllowed(String url,String userAgent1, String host) throws MalformedURLException
     {
        URL URL=new URL(url);
-       String  host= URL.getHost().toLowerCase();//get the host of this url which is the domain name i.e http://codeproject.com return codeproject.com 
+       //String  host= URL.getHost().toLowerCase();//get the host of this url which is the domain name i.e http://codeproject.com return codeproject.com 
        //System.out.println("host: "+host); 
              // Retrieve host's disallow list from cache.
        ArrayList disallowList =(ArrayList) disallowListCache.get(host);
@@ -44,9 +44,9 @@ public class Robot {
                        // System.out.println("found the user agent");
                         String userAgent=line.substring("User-Agent:".length()); //get the words beside user-agent:
                         //System.out.println(userAgent);
-                        if(!(" *".equals(userAgent))   && !(userAgent1.equalsIgnoreCase(userAgent)))
+                        if(!(" *".equals(userAgent))   && !(userAgent1.equalsIgnoreCase(userAgent))) //-->recheck later
                         {
-                            System.out.println("host is allowed");
+                            System.out.println(Thread.currentThread().getName()+"sees its host  allowed");
                          return true;
                         }
                      }

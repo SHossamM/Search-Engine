@@ -18,6 +18,10 @@ public class CrawlController  {//crawler would be one of the threads in the whol
   {
       this.threadsNumber=threadsNumber;
   }
+  public CrawlController()
+  {
+      this.threadsNumber=10;
+  }
 
  public void Start() //should create n threads and each crawl 
   {
@@ -25,7 +29,7 @@ public class CrawlController  {//crawler would be one of the threads in the whol
       {
       Thread th=new Thread(new CrawlerThread(urlsQueue));
       th.setName("Thread"+i);
-      System.out.println("Thread"+i+"Created");
+      System.out.println("Thread"+i+" Created");
       th.start();
           
       }

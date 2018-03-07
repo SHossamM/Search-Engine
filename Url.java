@@ -18,7 +18,7 @@ import java.net.URL;
 public class Url {
  /**
      * This methods verifies that the given url is an http url if the
-     * url is malformed exception is thrown and a null is returned if the url is not valid or verified
+     * url is malformed exception is thrown and a null is returned if the url is not valid or verified give MalformedURLException: no protocol: 
      * @param url
      * @return 
      */
@@ -29,6 +29,8 @@ if (!(url.toLowerCase().startsWith("http://")))
     if(!(url.toLowerCase().startsWith("https://")))
        return null;
 }
+if(url.isEmpty())
+    return null;
 // Verify format of URL.
 URL verifiedUrl = null;
 try {

@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -18,9 +19,10 @@ import org.jsoup.select.Elements;
 public class CrawlerThread implements Runnable { 
      final String userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0) Gecko/20100101 Firefox/58.0";
      final static int stoppingCriteria = 5000;
+     final static int domainMax=20;
      static int FetchedCount=0;
      static Queue<Document> DocumentsQueue=new LinkedList<>(); //list of fetched documents with their url
-    public  Queue<String> urlsQueue;
+     public  Queue<String> urlsQueue;
      static Set<String> visited = new HashSet<>();//set of unique links that are visited returns  false for duplicate elements
        CrawlerThread(  Queue<String> urlsQueue)
        {
@@ -40,14 +42,16 @@ public class CrawlerThread implements Runnable {
      Connection conn=Jsoup.connect(url).userAgent(userAgent);
      Connection.Response response=conn.url(url).timeout(1000).execute();
      URL URL=new URL(url);
+     if(response.contentType()!=null)
+     {
     if(!response.contentType().contains("text/html"))
         return null;
-   
+     }
     doc=conn.get();
     synchronized(DocumentsQueue)
     {
         DocumentsQueue.add(doc);
-        System.out.println(Thread.currentThread().getName()+"Added a document to the queue");
+        System.out.println(Thread.currentThread().getName()+" Added a document to the queue");
         Url.writeURLtoFile(URL, Integer.toString(DocumentsQueue.size()-1)+".html");
          FetchedCount++;
          System.out.println("Count= "+FetchedCount);
@@ -56,22 +60,40 @@ public class CrawlerThread implements Runnable {
      
     return doc; 
     }
-    catch(IOException e)
+    catch(IOException | NullPointerException e) //-->ask whetehr null pointer returns null or not
     {
         return null;
     }
+         // return doc;
+
      // return doc;  
     }
     
     /**
      * retrevs all document  in a vector of strings
      */
-    private  Vector<String> getLinks(Document doc) {
+    private  Vector<String> getLinks(Document doc, String domain) {
      Vector<String> result=new Vector<String>();
       Elements links=doc.select("a[href]"); // get all elements with href
-    for(   org.jsoup.nodes.Element link: links)
+      String extractedUrl;
+        int domainCount=0;
+    for(  org.jsoup.nodes.Element link: links)
         {
-          result.add(link.attr("abs:href")); // removing <a tag and href attribute
+         extractedUrl=link.attr("abs:href").toLowerCase();
+         if(extractedUrl.contains("#") || extractedUrl.isEmpty()) //empty | # refers to current document too
+             continue;
+
+         if(extractedUrl.contains(domain))
+         {
+           if(domainCount>domainMax)
+             continue;
+           domainCount++;
+         }
+         if(FetchedCount<stoppingCriteria)
+         {
+           result.add(extractedUrl); // removing <a tag and href attribute
+         }
+        
         }
         System.out.println(Thread.currentThread().getName()+" Extracted Links");       
       return result;
@@ -81,7 +103,7 @@ public class CrawlerThread implements Runnable {
      * pops a link from queue 
      */
      
-void crawl() throws MalformedURLException{
+void crawl() throws MalformedURLException, InterruptedException{
       //get / pop a url from qeue
         String url,link;
         Document doc;
@@ -92,17 +114,25 @@ void crawl() throws MalformedURLException{
     {
       //  System.out.println("Thread id: "+Thread.currentThread().getName()+ " tried to pop off the queue");
       url=urlsQueue.poll();//get a url from ueue to process if queue is emepty url =null 
+      while(url==null)
+      {
+          urlsQueue.wait();
+          url=urlsQueue.poll();
+      }
+      System.out.println(Thread.currentThread().getName()+ " popped "+url+" from the URLqueue");
     }
       if(url!=null)//queue is not empty
         {
-           System.out.println(Thread.currentThread().getName()+ " popped a url from the queue");
+            
            if(Url.verifyUrl(url)!=null) //check1 that the url is verified
             {
                 if(url.contains("#"))  //check2 removing hashes as they mean same page
                 {
                     url=url.substring(0,url.indexOf('#'));
                 }
-                if(Robot.isRobotAllowed(url,userAgent)) //check3 RobotAllowed
+                URL URL=new URL(url);
+                String  host= URL.getHost().toLowerCase();//get the host of this url which is the domain name i.e http://codeproject.com return codeproject.com 
+                if(Robot.isRobotAllowed(url,userAgent,host)) //check3 RobotAllowed
                 {
                 if(visited.add(url)) //check4 not duplicate and visited before
                 {
@@ -110,7 +140,7 @@ void crawl() throws MalformedURLException{
                 //extarct links from this document
                 if(doc!=null) //null if not html //check5 html document?
                 {
-                 Vector<String> links=getLinks(doc);
+                 Vector<String> links=getLinks(doc,host);
 
                 //add visited  if not duplicate add each to the queue
                 for(int i=0;i<links.size();i++)
@@ -120,7 +150,8 @@ void crawl() throws MalformedURLException{
 //                   {
                        synchronized(urlsQueue)
                        {
-                        urlsQueue.add(link);                        
+                        urlsQueue.add(link);   
+                        urlsQueue.notifyAll();
                        }
 //                   }
                  }
@@ -142,6 +173,8 @@ void crawl() throws MalformedURLException{
          try {
              crawl();
          } catch (MalformedURLException ex) {
+             Logger.getLogger(CrawlerThread.class.getName()).log(Level.SEVERE, null, ex);
+         } catch (InterruptedException ex) {
              Logger.getLogger(CrawlerThread.class.getName()).log(Level.SEVERE, null, ex);
          }
     }
