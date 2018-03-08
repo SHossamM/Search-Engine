@@ -19,7 +19,7 @@ import org.jsoup.select.Elements;
  * @author Sahar
  */
 public class CrawlerThread implements Runnable { 
-     final String userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0) Gecko/20100101 Firefox/58.0";
+     final String userAgent="Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1";
      final static int stoppingCriteria = 5000;
      final static int domainMax=20;
      DataBase dB;
@@ -27,11 +27,13 @@ public class CrawlerThread implements Runnable {
     //  Integer fetchedCount; //refrence to controllers count
      //static Queue<Document> DocumentsQueue=new LinkedList<>(); //list of fetched documents with their url-->removed as consumes space
      public  Queue<String> urlsQueue; //refernce to that of controller's
+     public Queue<String> visitedBackup;
      static Set<String> visited= new HashSet<>() ;//set of unique links that are visited returns  false for duplicate elements
      //static Set<String> tovisit=new HashSet<>(); //to avoid saving duplicates to visit
-       CrawlerThread(  Queue<String> urlsQueue,DataBase db)
+       CrawlerThread(  Queue<String> urlsQueue, Queue<String> visitedBackup,DataBase db)
        {
            this.urlsQueue=urlsQueue;
+           this.visitedBackup=visitedBackup;
            this.dB=db;
       
          //  fetchedCount=fc;
@@ -48,13 +50,14 @@ public class CrawlerThread implements Runnable {
          {
                 // connect to url, set 1 s timeout and send a get requesst so html document is returned
              Connection conn=Jsoup.connect(url).userAgent(userAgent);
-             Connection.Response response=conn.url(url).timeout(1000).execute();
+             Connection.Response response=conn.url(url).timeout(1500).execute();
              URL URL=new URL(url);
              if(response.contentType()!=null)
              {
             if(!response.contentType().contains("text/html"))
                 return null;
              }
+      
             doc=conn.get();
             synchronized(dB) //because of retrived count
             {
@@ -116,7 +119,7 @@ void crawl() throws MalformedURLException, InterruptedException, SQLException{
         String url,link;
         Document doc;
 
- while(dB.GetVisitedCount()<stoppingCriteria)
+ while(!urlsQueue.isEmpty())
    {            
             synchronized(urlsQueue)
             {
@@ -124,10 +127,10 @@ void crawl() throws MalformedURLException, InterruptedException, SQLException{
               url=urlsQueue.poll();//get a url from ueue to process if queue is emepty url =null 
               if(url==null)
               {
-                 urlsQueue.wait();
-                 url=urlsQueue.poll();
-              // System.out.println(Thread.currentThread().getName()+ "existing");
-              // return; //thread stops???
+        //          urlsQueue.wait();
+        //          url=urlsQueue.poll();
+               System.out.println(Thread.currentThread().getName()+ "existing");
+               return; //thread stops??? yes it terminates :)
 
               }
               System.out.println(Thread.currentThread().getName()+ " popped "+url+" from the URLqueue");
@@ -163,19 +166,25 @@ void crawl() throws MalformedURLException, InterruptedException, SQLException{
                             for(int i=0;i<links.size();i++)
                             {
                                 link=links.get(i);
-                                synchronized(dB)
+                                synchronized(visitedBackup)
                                 {
-                                    if(!dB.CheckUrlExists(link)) //if link not added  before add to  db as not
-                                      {
-                                          dB.InsertLink(link); //add to db as not visited--->check
-                                      }
+                                   // if(!dB.CheckUrlExists(link)) //if link not added  before add to  db as not
+                                     // {
+                                        visitedBackup.add(link);//7l fe el nos 3shan link link f db bybt2aha awyy :(
+                                        //  dB.InsertLink(link); //add to db as not visited--->check
+                                      //}
                                 }
                             }
                              }
 
                             }
+                        System.out.println(url+"is duplicate detected by"+Thread.currentThread().getName());
+                        continue;
                          }
+                        System.out.println(url+"is robot disallowed "+Thread.currentThread().getName());
+                        continue;
                         }
+                    System.out.println(url+"is unverified by "+Thread.currentThread().getName());
 
                    }  
 
