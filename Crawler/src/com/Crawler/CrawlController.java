@@ -1,7 +1,5 @@
 package com.Crawler;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
@@ -24,7 +22,7 @@ public class CrawlController {//crawler would be one of the threads in the whole
     private DataBase dB;
 
     // static Integer fetchedCount; -->not needed now since i check count from database ":)
-    final int stoppingCriteria = 5000;
+    final int stoppingCriteria = 5100;
 
     public CrawlController(int threadsNumber) {
         this.threadsNumber = threadsNumber;
@@ -45,7 +43,7 @@ public class CrawlController {//crawler would be one of the threads in the whole
             System.out.println("--------------------------------------------");
             System.out.println("Fetching new links");
             startTime = Instant.now();
-            urlsQueue = dB.RetriveNonVisited(); //get all non visited links from database and fetch in queue
+            urlsQueue = dB.RetrieveNonVisited(); //get all non visited links from database and fetch in queue
             if(urlsQueue.isEmpty()){
                 System.out.println("No more links to  retrieve");
                 break;

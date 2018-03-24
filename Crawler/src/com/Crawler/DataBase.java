@@ -35,14 +35,14 @@ public class DataBase {
     }
 
     /**
-     * Retreves nonvisited links to a queue
+     * Retrieves nonvisited links to a queue
      *
      * @return a queue of urls
      * @throws java.sql.SQLException
      */
-    public synchronized ConcurrentLinkedQueue<Url> RetriveNonVisited() throws SQLException {
+    public synchronized ConcurrentLinkedQueue<Url> RetrieveNonVisited() throws SQLException {
         ConcurrentLinkedQueue<Url> seedSet = new ConcurrentLinkedQueue<>();
-        CallableStatement cStmt = connection.prepareCall("{call RetriveNonVisited}"); //throws sqlexception -->check later
+        CallableStatement cStmt = connection.prepareCall("{call RetrieveNonVisited}"); //throws sqlexception -->check later
         cStmt.execute();
         ResultSet result = cStmt.executeQuery();
         while (result.next()) {//while there are rows in returned result set
