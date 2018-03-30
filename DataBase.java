@@ -44,7 +44,7 @@ public class DataBase {
         cStmt.execute();
         ResultSet result = cStmt.executeQuery();
         while (result.next()) {//while there are rows in returned result set
-            seedSet.add(new Url(result.getInt("id"), result.getString("url"))); //adding all non visited to urlqueues
+            seedSet.add(new Url(result.getInt("id"), result.getString("url"),result.getTimestamp("visited"),result.getInt("Rank"))); //adding all non visited to urlqueues
         }
         result.close();
         cStmt.close();
@@ -101,7 +101,7 @@ public class DataBase {
             System.out.println("SQLException: " + e.getMessage());
         }
     }
-
+   
     public synchronized void MarkVisited(Integer urlId) {
         try {
             CallableStatement cStmt = connection.prepareCall("{call MarkVisited(?)}"); //throws sqlexception -->check later
@@ -128,7 +128,25 @@ public class DataBase {
             System.out.println("SQLException: " + e.getMessage());
         }
     }
-
+    public synchronized void InsertHash(ConcurrentLinkedQueue<Url> HashQueue)
+    {
+        try {
+            connection.setAutoCommit(false);
+            CallableStatement cStmt = connection.prepareCall("{call InsertHash(?,?)}"); //throws sqlexception -->check later
+            Url url;
+            while (!HashQueue.isEmpty()) {
+                    url=HashQueue.poll();
+                    cStmt.setInt("urlId", url.getId());
+                    cStmt.setInt("hash", url.getHash());
+                    cStmt.addBatch();
+            }
+            cStmt.executeBatch();
+            connection.commit();
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+    }
     public synchronized void UnmarkParseable(Integer urlId) {
         try {
             CallableStatement cStmt = connection.prepareCall("{call UnmarkParseable(?)}"); //throws sqlexception -->check later
@@ -221,4 +239,5 @@ public class DataBase {
         }
         return 0;
     }
+   
 }

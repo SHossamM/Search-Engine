@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import java.sql.SQLException;
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -17,6 +18,7 @@ public class CrawlController {//crawler would be one of the threads in the whole
     int threadsNumber;
 
     ConcurrentLinkedQueue<Url> urlsQueue; //queue of unique urls to be crawled
+    ConcurrentLinkedQueue<Url> HashQueue=new ConcurrentLinkedQueue<>();
     ConcurrentLinkedQueue<OutgoingLinks> outgoingLinks = new ConcurrentLinkedQueue<>();
     ConcurrentLinkedQueue<Integer> visitedLinks = new ConcurrentLinkedQueue<>();
     ConcurrentLinkedQueue<Integer> notVerified = new ConcurrentLinkedQueue<>();
@@ -39,7 +41,7 @@ public class CrawlController {//crawler would be one of the threads in the whole
         dB = new DataBase();
     }
 
-    public void Start() throws SQLException, InterruptedException, IOException //should create n threads and each crawl
+    public void Start() throws SQLException, InterruptedException, IOException, ParseException //should create n threads and each crawl
     {
         Instant startTime;
         Instant endTime;
@@ -68,7 +70,7 @@ public class CrawlController {//crawler would be one of the threads in the whole
             startTime = Instant.now();
             Thread[] threads = new Thread[threadsNumber];
             for (int i = 0; i < threadsNumber; i++) {
-                threads[i] = new Thread(new CrawlerThread(urlsQueue, outgoingLinks, visitedLinks, notVerified, notRobotallowed, notParseable));
+                threads[i] = new Thread(new CrawlerThread(urlsQueue,HashQueue, outgoingLinks, visitedLinks, notVerified, notRobotallowed, notParseable));
                 threads[i].setName("Thread" + i);
                 System.out.println("Thread" + i + " Created");
                 threads[i].start();
@@ -87,6 +89,7 @@ public class CrawlController {//crawler would be one of the threads in the whole
             startTime = Instant.now();
             dB.InsertLinks(outgoingLinks);
             dB.MarkVisited(visitedLinks);
+            dB.InsertHash(HashQueue);
             dB.UnmarkVerified(notVerified);
             dB.UnmarkRobotallowed(notRobotallowed);
             dB.UnmarkParseable(notParseable);

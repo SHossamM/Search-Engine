@@ -9,22 +9,44 @@ public class Url {
 
 	private int id;
 	private String url;
+        private java.sql.Timestamp  date;
+        private int Rank;
+        private int Hash;
 
-	public Url(int id, String url){
+	public Url(int id, String url,java.sql.Timestamp  date,int Rank){
 		this.id = id;
 		this.url = url;
+                this.date=date;
+                this.Rank=Rank;
+                this.Hash=-1;
 	}
 
 	public int getId() {
 		return id;
 	}
-
+      
 	public String getUrl() {
 		return url;
 	}
+        public java.sql.Timestamp  getDate()
+        {
+            return date;
+        }
+        public int getRank()
+        {
+            return Rank;
+        }
+        public int getHash()
+        {
+            return Hash;
+        }
 	public void setUrl(String url) {
 		this.url = url;
 	}
+        public void setHash(int Hash)
+        {
+            this.Hash=Hash;
+        }
 
 
 	/**
