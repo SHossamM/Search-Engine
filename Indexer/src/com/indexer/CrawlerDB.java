@@ -41,7 +41,7 @@ public class CrawlerDB {
      */
     public Queue<Url> RetrieveUnindexed() throws SQLException {
         Queue<Url> seedSet = new LinkedList<>();
-        CallableStatement cStmt = connection.prepareCall("{call RetrieveUnindexed}"); //throws sqlexception -->check later
+        CallableStatement cStmt = connection.prepareCall("{call RetrieveToBeIndexed}"); //throws sqlexception -->check later
         cStmt.execute();
         ResultSet result = cStmt.executeQuery();
         while (result.next()) {//while there are rows in returned result set

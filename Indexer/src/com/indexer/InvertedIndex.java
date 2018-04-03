@@ -39,6 +39,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
 
         @Override
         public Document toBSONDocument() {
+            //System.out.println(documentId);
             return new Document("documentId", documentId)
                     .append("termPositions", termPositions)
                     .append("termFrequency", termFrequency)
@@ -194,7 +195,30 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
     }
 
 
+    public void clearIndexDB(){
+        // Drop and create indexer collections
+        dropAndCreateCollection("indexInformation");
+        dropAndCreateCollection("forwardIndexDocuments");
+
+        MongoCollection<Document> invertedIndexTerms = dropAndCreateCollection("invertedIndexTerms");
+
+        //Create inverted index indexes
+        invertedIndexTerms.createIndex(
+                new Document("term", 1)
+        );
+        invertedIndexTerms.createIndex(
+                new Document("postingsLists.documentId", 1)
+        );
+
+    }
+
+
     public void buildInitialInvertedIndex(String pagesPath) throws Exception {
+
+        // Create instant objects to debuggine indexer performance
+        Instant s, e;
+        s = Instant.now();
+
 
         // Drop and create indexer collections
         MongoCollection<Document> forwardIndexDocuments = dropAndCreateCollection("forwardIndexDocuments");
@@ -209,9 +233,6 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
         // A counter to show the indexer progress
         totalNumOfDocuments = 0;
 
-        // Create instant objects to debuggine indexer performance
-        Instant s, e;
-        s = Instant.now();
 
         // Tokenizer and stemmer to parse page data
         WhitespaceTokenizer wsTokenizer = WhitespaceTokenizer.INSTANCE;
@@ -273,6 +294,8 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
 
         // Insert the inverted index documents into the collection
         invertedIndexTerms.insertMany(toBSONDocuments());
+
+
         //Create inverted index indexes
         invertedIndexTerms.createIndex(
                 new Document("term", 1)
@@ -287,6 +310,10 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
 
         //Update crawlerDB with indexed urls
         dataReader.finalize(indexedUrls);
+
+        e = Instant.now();
+        System.out.println(String.format("Total time: %d milliseconds", Duration.between(s, e).toMillis()));
+
 
     }
 
@@ -318,7 +345,10 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
                         "$push",
                         new Document(
                                 "postingsLists",
-                                newPostingsLists
+                                new Document(
+                                        "$each",
+                                        newPostingsLists
+                                )
                         )
                 )
         );
@@ -326,6 +356,9 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
     }
 
     public void updateInvertedIndex(String pagesPath) throws Exception {
+        // Create instant objects to debuggine indexer performance
+        Instant s, e;
+        s = Instant.now();
 
         // Drop and create indexer collections
         MongoCollection<Document> forwardIndexDocuments = indexDB.getCollection("forwardIndexDocuments");
@@ -340,9 +373,6 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
         // A counter to show the indexer progress
         totalNumOfDocuments = 0;
 
-        // Create instant objects to debuggine indexer performance
-        Instant s, e;
-        s = Instant.now();
 
         // Tokenizer and stemmer to parse page data
         WhitespaceTokenizer wsTokenizer = WhitespaceTokenizer.INSTANCE;
@@ -448,6 +478,9 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
 
         //Update crawlerDB with indexed urls
         dataReader.finalize(indexedUrls);
+
+        e = Instant.now();
+        System.out.println(String.format("Total time: %d milliseconds",Duration.between(s, e).toMillis()));
 
     }
 

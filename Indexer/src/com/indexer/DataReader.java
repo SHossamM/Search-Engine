@@ -43,6 +43,8 @@ public class DataReader {
                 );
             } catch (Exception e) {
                 System.out.println("Problem ------- " + url.getId());
+                System.out.println("Problem ------- " + e.getLocalizedMessage());
+
                 return new DataDocument(
                         url.getId(),
                         "",
