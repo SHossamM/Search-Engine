@@ -17,10 +17,10 @@ public class Result {
     private double rank;
     
     
-    Result(int id,double rank){
+    Result(int id,double rank,String url){
         this.id=id;
         this.rank=rank;
-        this.url="";
+        this.url=url;
         this.snippet="";
         this.title="";
     }
