@@ -1,19 +1,14 @@
 package com.Crawler;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * 
- * @author Sahar
- */
+
 public class Robot {
     static public ConcurrentHashMap disallowListCache = new ConcurrentHashMap();///////
     // Check if robot is allowed to access the given URL. 
@@ -50,33 +45,19 @@ public class Robot {
                 //Read it and create list of dissallowed paths
                 String line;
                 line = reader.readLine();
-
+                String disallowedAgent = "";
                 while (line != null) {
 
-                    //  System.out.println(line);
-                    if (line.indexOf("User-Agent:") == 0) //checks if this line conatins user-agent: A and a later
-                    {
-                        // System.out.println("found the user agent");
-                        String userAgent = line.substring("User-Agent:".length()); //get the words beside user-agent:
-                        //System.out.println(userAgent);
-                        if (!(" *".equals(userAgent)) && !(userAgent1.equalsIgnoreCase(userAgent))) //-->recheck later
-                        {
-                            //System.out.println(Thread.currentThread().getName()+"sees its host  allowed");
-                            return true;
-                        }
+                    if (line.indexOf("User-agent:") == 0) {
+                        disallowedAgent = line.substring("User-agent:".length());
+                        //  disallowedAgent2=disallowedAgent;
+
+
                     }
-                    if (line.indexOf("User-agent:") == 0) //checks if this line conatins user-agent: A and a later
-                    {
-                        // System.out.println("found the user agent");
-                        String userAgent = line.substring("User-Agent:".length()); //get the words beside user-agent:
-                        // System.out.println(userAgent);
-                        if (!" *".equals(userAgent) && !(userAgent1.equalsIgnoreCase(userAgent))) {
-                            //System.out.println("host is allowed");
-                            return true;
-                        }
+                    if (line.indexOf("User-Agent:") == 0) {
+                        disallowedAgent = line.substring("User-Agent:".length());
                     }
 
-                    // System.out.println("line.indexOf(\"Disallow:\"): "+line.indexOf("Disallow:"));
                     if (line.indexOf("Disallow:") == 0) {
                         String disallowPath = line.substring("Disallow:".length());
                         // Check disallow path for comments and remove if present.
@@ -88,7 +69,9 @@ public class Robot {
                         // Remove leading or trailing spaces from disallow path.
                         disallowPath = disallowPath.trim();
                         // Add disallow path to list.
-                        disallowList.add(disallowPath);
+                        //disallowedAgent=="*" ||disallowedAgent==" *"||
+                        if (disallowedAgent.contains("*") || disallowedAgent == userAgent1)
+                            disallowList.add(disallowPath);
                     }
                     line = reader.readLine();
                 }
@@ -108,7 +91,6 @@ public class Robot {
             disallow = (String) disallowList.get(i); //get string path of the first dissallowed oath
             if (file.startsWith(disallow)) {
                 return false;
-
             }
         }
         return true;

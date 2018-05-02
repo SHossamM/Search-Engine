@@ -1,0 +1,44 @@
+function(query_terms) {
+    // write your code here
+    return db.invertedIndexTerms.aggregate([
+{
+    $match: {
+        "term": {
+        $in: query_terms,
+        },
+    },
+},
+
+{
+    $project: {
+        "_id": 0,
+        "term": 1,
+        "inverseDocumentFrequency": 1,
+        "postingsLists.documentId": 1,
+        "postingsLists.termFrequency": 1,
+    },
+},
+{
+    $unwind: "$postingsLists",
+},
+{
+    $project: {
+        "documentId": "$postingsLists.documentId",
+        "TFIDF": {
+         $multiply: ["$postingsLists.termFrequency","$inverseDocumentFrequency"],
+        },
+    }
+},
+{
+    $group: {
+        "_id": "$documentId",
+        "score": {
+            $sum: "$TFIDF",
+        },
+    },
+},
+{
+    $sort: {"score": -1},
+},
+]);
+}

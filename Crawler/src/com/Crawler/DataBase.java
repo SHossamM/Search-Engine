@@ -2,8 +2,8 @@ package com.Crawler;
 
 import java.sql.*;
 import java.util.List;
-
 import java.util.concurrent.ConcurrentLinkedQueue;
+
 
 public class DataBase {
     /**
@@ -23,15 +23,13 @@ public class DataBase {
     public DataBase() {
         try {
             Class.forName(driver).newInstance();// force it to be included in the final war,
-            connection = DriverManager.getConnection(dBURL,username,password);
+            connection = DriverManager.getConnection(dBURL, username, password);
             System.out.println("Connecting to database...");
         } catch (Exception e) {
             e.printStackTrace();
             // System.out.println("Error: unable to load driver class!");
             System.exit(1);
         }
-
-
     }
 
     /**
@@ -46,7 +44,13 @@ public class DataBase {
         cStmt.execute();
         ResultSet result = cStmt.executeQuery();
         while (result.next()) {//while there are rows in returned result set
-            seedSet.add(new Url(result.getInt("id"), result.getString("url"))); //adding all non visited to urlqueues
+            seedSet.add(new Url(
+                    result.getInt("id"),
+                    result.getString("url"),
+                    result.getTimestamp("visited"),
+                    result.getInt("Rank"),
+                    result.getInt("HashContent"),
+                    result.getInt("News"))); //adding all non visited to urlqueues
         }
         result.close();
         cStmt.close();
@@ -69,7 +73,7 @@ public class DataBase {
             connection.setAutoCommit(false);
             CallableStatement cStmt = connection.prepareCall("{call InsertLink(?,?)}"); //throws sqlexception -->check later
 
-            for(String destUrl: destUrls){
+            for (String destUrl : destUrls) {
                 cStmt.setInt("srcId", srcId);
                 cStmt.setString("destUrl", destUrl);
                 cStmt.addBatch();
@@ -120,8 +124,27 @@ public class DataBase {
             CallableStatement cStmt = connection.prepareCall("{call MarkVisited(?)}"); //throws sqlexception -->check later
 
             while (!visitedUrls.isEmpty()) {
-                    cStmt.setInt("urlId", visitedUrls.poll());
-                    cStmt.addBatch();
+                cStmt.setInt("urlId", visitedUrls.poll());
+                cStmt.addBatch();
+            }
+            cStmt.executeBatch();
+            connection.commit();
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+    }
+
+    public synchronized void InsertHash(ConcurrentLinkedQueue<Url> HashQueue) {
+        try {
+            connection.setAutoCommit(false);
+            CallableStatement cStmt = connection.prepareCall("{call InsertHash(?,?)}"); //throws sqlexception -->check later
+            Url url;
+            while (!HashQueue.isEmpty()) {
+                url = HashQueue.poll();
+                cStmt.setInt("urlId", url.getId());
+                cStmt.setInt("hash", url.getHash());
+                cStmt.addBatch();
             }
             cStmt.executeBatch();
             connection.commit();
@@ -212,6 +235,24 @@ public class DataBase {
         }
     }
 
+    public synchronized void MarkNews(ConcurrentLinkedQueue<Integer> hasNews) {
+        try {
+            connection.setAutoCommit(false);
+            CallableStatement cStmt = connection.prepareCall("{call MarkNews(?)}"); //throws sqlexception -->check later
+
+            while (!hasNews.isEmpty()) {
+                cStmt.setInt("urlId", hasNews.poll());
+                cStmt.addBatch();
+            }
+            cStmt.executeBatch();
+            connection.commit();
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            System.out.println("SQLException: " + e.getMessage());
+        }
+    }
+
+
     public synchronized int GetVisitedCount() {
         try {
             CallableStatement cStmt = connection.prepareCall("{call CountVisited(?)}"); //throws sqlexception -->check later
@@ -222,5 +263,14 @@ public class DataBase {
             System.out.println("SQLException: " + e.getMessage());
         }
         return 0;
+    }
+
+    public synchronized void clearDownloaded(){
+        try {
+            CallableStatement cStmt = connection.prepareCall("{call ClearDownloaded}"); //throws sqlexception -->check later
+            cStmt.execute();
+        } catch (SQLException e) {
+            System.out.println("SQLException: " + e.getMessage());
+        }
     }
 }
