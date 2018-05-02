@@ -1,0 +1,43 @@
+function() {
+
+    var numOfTerms = db.invertedIndexTerms.count();
+    var numOfDocuments = db.forwardIndexDocuments.count();
+    var currentTime = new Date();
+
+    db.indexInformation.updateOne(
+        {},
+        {
+            $set: {
+                "numOfTerms": numOfTerms,
+                "numOfDocuments": numOfDocuments,
+                "lastUpdated": currentTime,
+            },
+        },
+        {"upsert": true}
+    );
+
+    var count=0;
+    var bulkOp = db.invertedIndexTerms.initializeUnorderedBulkOp(); 
+    
+    db.invertedIndexTerms.aggregate([
+        {
+            $project: {
+                "_id": 1,
+                "numOfDocuments": {$size: "$postingsLists"},
+            }
+        },
+    ]).forEach(function(doc){
+    bulkOp.find({_id:doc._id}).updateOne({$set: {"inverseDocumentFrequency": -Math.log(doc.numOfDocuments/numOfDocuments)}});
+        count++;
+        if(count % 5000 === 0){
+            count=0
+            bulkOp.execute();
+            bulkOp = db.invertedIndexTerms.initializeUnorderedBulkOp();
+        }    
+    });
+
+    if(count>0){
+        bulkOp.execute();
+    }
+
+}
