@@ -15,6 +15,7 @@ import java.util.Set;
 public class DataDocument {
 
     private Integer id;
+    private String url;
     private Set<String> titleKeywords;
     private Set<String> metaKeywords;
     private String text;
@@ -59,6 +60,7 @@ public class DataDocument {
         WhitespaceTokenizer wsTokenizer = WhitespaceTokenizer.INSTANCE;
 
         this.id = id;
+        this.url = url;
         this.titleKeywords = new HashSet<>(Arrays.asList(wsTokenizer.tokenize(title)));
         this.metaKeywords = new HashSet<>(Arrays.asList(wsTokenizer.tokenize(metaKeywords)));
         this.text = parsedText.toString();
@@ -66,6 +68,10 @@ public class DataDocument {
 
     public Integer getId() {
         return id;
+    }
+
+    public String getUrl(){
+        return url;
     }
 
     public Set<String> getTitleKeywords() {

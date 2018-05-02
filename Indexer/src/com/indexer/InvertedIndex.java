@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 
-public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
+public class InvertedIndex implements MongoDBBulkDocumentsSerializable {
 
     private class PostingsList implements MongoDBDocumentSerializable {
         private final Integer documentId;
@@ -32,7 +32,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
         public PostingsList(Integer documentId, List<Integer> termPositions, Boolean inTitle, Boolean inMetaKeywords, Integer documentLength) {
             this.documentId = documentId;
             this.termPositions = termPositions;
-            this.termFrequency = (double)this.termPositions.size() / (double)documentLength;
+            this.termFrequency = (double) this.termPositions.size() / (double) documentLength;
             this.inTitle = inTitle;
             this.inMetaKeywords = inMetaKeywords;
         }
@@ -57,7 +57,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
             inverseDocumentFrequency = 0d;
         }
 
-        private List<PostingsList> getPostingsLists(){
+        private List<PostingsList> getPostingsLists() {
             return postingsLists;
         }
 
@@ -70,7 +70,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
         }
 
         @Override
-        public Document toBSONDocument(){
+        public Document toBSONDocument() {
 
             List<Document> postingsListsDocuments = postingsLists.stream().map(PostingsList::toBSONDocument).collect(Collectors.toList());
 
@@ -96,8 +96,8 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
     }
 
 
-    private void updateIDF(){
-        for(Map.Entry<String, TermData> entry: invertedIndex.entrySet()){
+    private void updateIDF() {
+        for (Map.Entry<String, TermData> entry : invertedIndex.entrySet()) {
             entry.getValue().setInverseDocumentFrequency(
                     -1d * Math.log(((double) entry.getValue().getPostingsLists().size()) / ((double) totalNumOfDocuments))
             );
@@ -105,8 +105,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
     }
 
 
-
-    private void insertNewDocumentId(Integer documentId){
+    private void insertNewDocumentId(Integer documentId) {
         this.uniqueDocuments.add(documentId);
     }
 
@@ -149,29 +148,30 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
     }
 
 
-    private static Document serializeDocumentTermsData(Integer documentId, Map<String, LinkedList<Integer>> termPositions){
+    private static Document serializeDocumentTermsData(Integer documentId, String url, String content, Map<String, LinkedList<Integer>> termPositions) {
         List<Document> documentTermsData = new LinkedList<>();
         Integer currTermFrequency;
-        Integer maxTermFrequency=0;
+        Integer maxTermFrequency = 0;
 
-        for(String term : termPositions.keySet()) {
+        for (String term : termPositions.keySet()) {
             currTermFrequency = termPositions.get(term).size();
             maxTermFrequency = Math.max(maxTermFrequency, currTermFrequency);
 
             documentTermsData.add(new Document("term", term).append("termFrequency", currTermFrequency));
         }
 
-        return new Document("documentId", documentId).append("maxTermFrequency", maxTermFrequency).append("terms", documentTermsData);
+        return new Document("documentId", documentId)
+                .append("url", url)
+                .append("pageRank", 0.0)
+                .append("maxTermFrequency", maxTermFrequency)
+                .append("terms", documentTermsData)
+                .append("content", content);
     }
 
 
-
-
-
-
-    private Boolean checkCollectionExists(String collectionName){
-        for(String _collectionName: indexDB.listCollectionNames()){
-            if(collectionName.equalsIgnoreCase(_collectionName)){
+    private Boolean checkCollectionExists(String collectionName) {
+        for (String _collectionName : indexDB.listCollectionNames()) {
+            if (collectionName.equalsIgnoreCase(_collectionName)) {
                 return true;
             }
         }
@@ -179,8 +179,8 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
     }
 
 
-    private MongoCollection<Document> dropAndCreateCollection(String collectionName){
-        if(checkCollectionExists(collectionName)){
+    private MongoCollection<Document> dropAndCreateCollection(String collectionName) {
+        if (checkCollectionExists(collectionName)) {
             indexDB.getCollection(collectionName).drop();
         }
         indexDB.createCollection(collectionName);
@@ -188,26 +188,32 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
     }
 
 
-    private Document buildIndexInformationDocument(){
+    private Document buildIndexInformationDocument() {
         return new Document("numOfTerms", invertedIndex.size())
                 .append("numOfDocuments", totalNumOfDocuments)
-                .append("lastUpdated",  new Date());
+                .append("lastUpdated", new Date());
     }
 
 
-    public void clearIndexDB(){
+    public void clearIndexDB() {
         // Drop and create indexer collections
         dropAndCreateCollection("indexInformation");
         dropAndCreateCollection("forwardIndexDocuments");
 
         MongoCollection<Document> invertedIndexTerms = dropAndCreateCollection("invertedIndexTerms");
+        MongoCollection<Document> forwardIndexDocuments = dropAndCreateCollection("forwardIndexDocuments");
 
-        //Create inverted index indexes
+        // Create inverted index indexes
         invertedIndexTerms.createIndex(
                 new Document("term", 1)
         );
         invertedIndexTerms.createIndex(
                 new Document("postingsLists.documentId", 1)
+        );
+
+        // Create forward index full text index for phrase searching
+        forwardIndexDocuments.createIndex(
+                new Document("content", "text")
         );
 
     }
@@ -247,20 +253,23 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
             Set<String> titleKeywords = dataDocument.getTitleKeywords();
             Set<String> metaKeywords = dataDocument.getMetaKeywords();
             String[] tokens = wsTokenizer.tokenize(dataDocument.getText());
+            StringBuilder content = new StringBuilder();
 
             Map<String, LinkedList<Integer>> termPositions = new HashMap<>();
             for (Integer tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
                 String originalTerm = tokens[tokenIdx];
                 String stemmedTerm = porterStemmer.stem(originalTerm);
 
-                //Add original term for phrase searching
+                // Keep content for phrase searching
+                content.append(originalTerm + " ");
+                // Add original term for phrase searching
                 if (!termPositions.containsKey(originalTerm)) {
                     termPositions.put(originalTerm, new LinkedList<>());
                 }
                 termPositions.get(originalTerm).add(tokenIdx);
 
-                //Add stemmed term for normal searching if it is different than original
-                if(!stemmedTerm.equals(originalTerm)) {
+                // Add stemmed term for normal searching if it is different than original
+                if (!stemmedTerm.equals(originalTerm)) {
                     if (!termPositions.containsKey(stemmedTerm)) {
                         termPositions.put(stemmedTerm, new LinkedList<>());
                     }
@@ -279,7 +288,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
                         tokens.length);
             }
 
-            Document documentTermsData = InvertedIndex.serializeDocumentTermsData(dataDocument.getId(), termPositions);
+            Document documentTermsData = InvertedIndex.serializeDocumentTermsData(dataDocument.getId(), dataDocument.getUrl(), content.toString(), termPositions);
             forwardIndexDocuments.insertOne(documentTermsData);
 
             indexedUrls.add(dataDocument.getId());
@@ -290,7 +299,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
         updateIDF();
 
         e = Instant.now();
-        System.out.println(String.format("Building the inverted index took: %d milliseconds",Duration.between(s, e).toMillis()));
+        System.out.println(String.format("Building the inverted index took: %d milliseconds", Duration.between(s, e).toMillis()));
 
         // Insert the inverted index documents into the collection
         invertedIndexTerms.insertMany(toBSONDocuments());
@@ -318,7 +327,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
     }
 
 
-    private void _removeUrlsFromInvertedIndexById(List<Integer> urlIds, MongoCollection<Document> invertedIndexTerms){
+    private void _removeUrlsFromInvertedIndexById(List<Integer> urlIds, MongoCollection<Document> invertedIndexTerms) {
         //remove from inverted index
         invertedIndexTerms.updateMany(
                 Filters.in("postingsLists.documentId", urlIds),
@@ -388,20 +397,22 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
             Set<String> titleKeywords = dataDocument.getTitleKeywords();
             Set<String> metaKeywords = dataDocument.getMetaKeywords();
             String[] tokens = wsTokenizer.tokenize(dataDocument.getText());
-
+            StringBuilder content = new StringBuilder();
             Map<String, LinkedList<Integer>> termPositions = new HashMap<>();
             for (Integer tokenIdx = 0; tokenIdx < tokens.length; tokenIdx++) {
                 String originalTerm = tokens[tokenIdx];
                 String stemmedTerm = porterStemmer.stem(originalTerm);
 
-                //Add original term for phrase searching
+                // Keep content for phrase searching
+                content.append(originalTerm + " ");
+                // Add original term for phrase searching
                 if (!termPositions.containsKey(originalTerm)) {
                     termPositions.put(originalTerm, new LinkedList<>());
                 }
                 termPositions.get(originalTerm).add(tokenIdx);
 
-                //Add stemmed term for normal searching if it is different than original
-                if(!stemmedTerm.equals(originalTerm)) {
+                // Add stemmed term for normal searching if it is different than original
+                if (!stemmedTerm.equals(originalTerm)) {
                     if (!termPositions.containsKey(stemmedTerm)) {
                         termPositions.put(stemmedTerm, new LinkedList<>());
                     }
@@ -422,7 +433,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
 
 
             // Update old documents terms or insert new in forward index
-            Document documentTermsData = InvertedIndex.serializeDocumentTermsData(dataDocument.getId(), termPositions);
+            Document documentTermsData = InvertedIndex.serializeDocumentTermsData(dataDocument.getId(), dataDocument.getUrl(), content.toString(), termPositions);
             forwardIndexDocuments.replaceOne(
                     Filters.eq("documentId", dataDocument.getId()),
                     documentTermsData,
@@ -433,8 +444,6 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
             totalNumOfDocuments++;
         }
         System.out.println(Duration.between(s, Instant.now()).toMillis());
-
-
 
 
         // Start updating inverted index
@@ -464,28 +473,25 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable{
         System.out.println(Duration.between(s, Instant.now()).toMillis());
 
 
-
-
-
         // Update index information and idf
         System.out.println("Update Info");
-        indexDB.runCommand(new Document("eval","updateInformationAndIdf()"));
+        indexDB.runCommand(new Document("eval", "updateInformationAndIdf()"));
         System.out.println(Duration.between(s, Instant.now()).toMillis());
 
         e = Instant.now();
-        System.out.println(String.format("Updating the inverted index took: %d milliseconds",Duration.between(s, e).toMillis()));
+        System.out.println(String.format("Updating the inverted index took: %d milliseconds", Duration.between(s, e).toMillis()));
 
 
         //Update crawlerDB with indexed urls
         dataReader.finalize(indexedUrls);
 
         e = Instant.now();
-        System.out.println(String.format("Total time: %d milliseconds",Duration.between(s, e).toMillis()));
+        System.out.println(String.format("Total time: %d milliseconds", Duration.between(s, e).toMillis()));
 
     }
 
 
-    public void close(){
+    public void close() {
         mongoClient.close();
     }
 }
