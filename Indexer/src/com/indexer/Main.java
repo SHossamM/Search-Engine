@@ -18,7 +18,7 @@ public class Main {
 
     static final String pagesPath = "C:/Users/Ahmkel/Documents/CUFE/Semester_10/APT/FinalPhase1/Search-Engine/Crawler/pages";
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws InterruptedException {
 
         InvertedIndex invertedIndex;
 

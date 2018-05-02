@@ -71,5 +71,8 @@ public class CrawlerDB {
         }
     }
 
+    void close() throws SQLException{
+        connection.close();
+    }
 
 }

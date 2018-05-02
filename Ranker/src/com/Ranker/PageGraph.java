@@ -19,7 +19,7 @@ public class PageGraph {
         invertedAdjacencyList = new HashMap<>();
         numberOfOutlinks = new HashMap<>();
         pageRanks = new HashMap<>();
-        if(probabilityMode) {
+        if (probabilityMode) {
             numberOfPages = pageConnections.size();
         } else {
             numberOfPages = 1;
@@ -38,7 +38,7 @@ public class PageGraph {
                 invertedAdjacencyList.put(destinationId, new ArrayList<>());
                 numberOfOutlinks.put(destinationId, 0);
             }
-            if(sourceId.equals(destinationId)){
+            if (sourceId.equals(destinationId)) {
                 continue;
             }
             numberOfOutlinks.put(sourceId, numberOfOutlinks.get(sourceId) + 1);
@@ -83,11 +83,16 @@ public class PageGraph {
         System.out.println("Finished computing page rank.");
     }
 
-    public void printPageRanks() throws IOException{
+    public void printPageRanks() {
+        for (Integer id : pageRanks.keySet()) {
+            System.out.println(String.format("%d: %f", id, pageRanks.get(id)));
+        }
+    }
+
+    public void savePageRanks() throws IOException {
         String out = "";
         for (Integer id : pageRanks.keySet()) {
-            //System.out.println(String.format("%d: %f", id, pageRanks.get(id)));
-            out += id + "," + pageRanks.get(id)+"\n";
+            out += id + "," + pageRanks.get(id) + "\n";
         }
         File f = new File("./out.csv");
         FileUtils.writeStringToFile(f, out, "UTF-8");

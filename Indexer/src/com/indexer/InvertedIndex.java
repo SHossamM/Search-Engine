@@ -211,7 +211,10 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable {
                 new Document("postingsLists.documentId", 1)
         );
 
-        // Create forward index full text index for phrase searching
+        // Create forward index indexes
+        forwardIndexDocuments.createIndex(
+                new Document("documentId", 1)
+        );
         forwardIndexDocuments.createIndex(
                 new Document("content", "text")
         );
@@ -364,7 +367,7 @@ public class InvertedIndex implements MongoDBBulkDocumentsSerializable {
 
     }
 
-    public void updateInvertedIndex(String pagesPath) throws Exception {
+    public void updateInvertedIndex(String pagesPath) {
         // Create instant objects to debuggine indexer performance
         Instant s, e;
         s = Instant.now();

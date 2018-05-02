@@ -2,6 +2,7 @@ package com.indexer;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -57,5 +58,10 @@ public class DataReader {
 
     public void finalize(List<Integer> indexedUrls){
         crawlerDB.MarkIndexed(indexedUrls);
+        try {
+            crawlerDB.close();
+        } catch (SQLException e){
+            System.out.println("Error in closing database connection!");
+        }
     }
 }
