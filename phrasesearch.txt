@@ -1,0 +1,19 @@
+function (phrase) {
+return db.forwardIndexDocuments.aggregate([
+{
+    $match: {
+        $text: {$search: '"' + phrase + '"'},
+    },
+},
+{
+    $project: {
+        "_id": "$documentId",
+        "url": 1,
+        "score": "$pageRank",
+    }
+},
+{
+    $sort: {"score": -1},
+},
+]);
+}

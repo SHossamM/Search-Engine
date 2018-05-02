@@ -1,0 +1,71 @@
+function (query_terms) {
+return db.invertedIndexTerms.aggregate([
+{
+    $match: {
+        "term": {
+        $in: query_terms,
+        },
+    },
+},
+
+{
+    $project: {
+        "_id": 0,
+        "term": 1,
+        "inverseDocumentFrequency": 1,
+        "postingsLists.documentId": 1,
+        "postingsLists.termFrequency": 1,
+    },
+},
+{
+    $unwind: "$postingsLists",
+},
+{
+    $project: {
+        "documentId": "$postingsLists.documentId",
+        "TFIDF": {
+         $multiply: ["$postingsLists.termFrequency","$inverseDocumentFrequency"],
+        },
+    }
+},
+{
+    $group: {
+        "_id": "$documentId",
+        "score": {
+            $sum: "$TFIDF",
+        },
+    },
+},
+{
+    $lookup: {
+        from: "forwardIndexDocuments",
+        localField: "_id",
+        foreignField: "documentId",
+        as: "documentInfo",
+    },
+},
+{
+    $project: {
+        "_id": 1,
+        "score": 1,
+        "documentInfo.url": 1,
+        "documentInfo.pageRank": 1,
+    },
+},
+{
+    $unwind: "$documentInfo"
+},
+{
+    $project: {
+        "_id": 1,
+        "url": "$documentInfo.url",
+        "score": {
+            $multiply: ["$score", "$documentInfo.pageRank"]
+        },
+    },
+},
+{
+    $sort: {"score": -1},
+},
+]);
+}
