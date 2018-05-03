@@ -58,59 +58,70 @@ public class Parser {
     
     static public String getSnippet(Integer id, String url,List<String> queryInput) throws IOException{
     
-        String snip="";
-        
-         
+        String snip="";    
         DataDocument doc=Parse(id, url);
-        String b= doc.getText();
-      //search for any of the inputs in the body and return first index
-      int sIndex=0;
-        for(int i=0;i<queryInput.size();i++)
-        {
-            if(b.contains(queryInput.get(i)))
+        String body= doc.getBody();
+       
+       int min=body.indexOf(queryInput.get(0));
+       String minS=queryInput.get(0);
+               int firstOccurence;
+       
+       for(String s:queryInput)
+       {
+            
+           firstOccurence=  body.indexOf(s);
+           if(min==-1)
+           {
+               min=firstOccurence;
+               minS=s;
+           }
+           else if(firstOccurence!=-1 &&   firstOccurence<min   )
             {
-                sIndex=i;
-                break;
+                minS=s;
+                min=firstOccurence;
             }
-                
-        }
-        
-          if(sIndex>10)
-          {
-              if(b.length()>=150)
-              {
-               snip=   b.substring(sIndex-10, sIndex+140);
-              }
-              else
-              {
-                  snip=b.substring(sIndex-10, b.length()-1);
-                  for(int i=snip.length()-1;i<160;i++)
-                      snip+='.';
-              }
-          }
-          else
-          {
-              if(b.length()>=150)
-              {
-               snip=   b.substring(sIndex, sIndex+150);
-              }
-              else
-              {
-                  snip=b.substring(sIndex, b.length()-1);
-                  if(snip.length()<150)
-                      snip+="...";
-              }
-          }
-        
+               
+      }
+      String s="";
+       if(min==-1)
+       {
+           if(body.length()>200)
+           { 
+               snip= body.substring(0, 200);
+            return snip.substring(0,snip.length()/3)+"<br>"+snip.substring((snip.length()/3)+1,2*snip.length()/3)+"<br>"+snip.substring((2*snip.length()/3)+1,snip.length());
+           }
+           else
+           {
+               return body.substring(0,body.length()/3)+"<br>"+body.substring((body.length()/3)+1,2*body.length()/3)+"<br>"+body.substring((2*body.length()/3)+1,body.length());
+           }
+       }
+       else
+       {
+           
+           System.out.println(body.length());
+           if(min>100 && body.length()>200)
+           {
+              snip= body.substring(min-100, min+100);
+            return snip.substring(0,snip.length()/3)+"<br>"+snip.substring((snip.length()/3)+1,2*snip.length()/3)+"<br>"+snip.substring((2*snip.length()/3)+1,snip.length());
+              
+           }
+           else if(min>100 && body.length()<=200 )
+           {
+             snip= body.substring(min-100, body.length()-1);
+                return snip.substring(0,snip.length()/3)+"<br>"+snip.substring((snip.length()/3)+1,2*snip.length()/3)+"<br>"+snip.substring((2*snip.length()/3)+1,snip.length());
+           }
+            else if(min<=100 && body.length()>200 )
+           {
+                snip= body.substring(0, 200);
+                return snip.substring(0,snip.length()/3)+"<br>"+snip.substring((snip.length()/3)+1,2*snip.length()/3)+"<br>"+snip.substring((2*snip.length()/3)+1,snip.length());
+           }
+           else
+            {
+               snip= body.substring(0,body.length()-1);
+               return snip.substring(0,snip.length()/3)+"<br>"+snip.substring((snip.length()/3)+1,2*snip.length()/3)+"<br>"+snip.substring((2*snip.length()/3)+1,snip.length());
+            }
+       }
 
-         System.out.println(b);
-       //  System.out.println(in);
-       //  System.out.println(b.substring(in-150, in-1));
-         //System.out.println(b.substring(in, in+150));
-         
-         System.out.println("snip=  "+snip);
-         
-         return  snip;
         
     }
     
@@ -118,39 +129,39 @@ public class Parser {
   {
       String snip="";
       DataDocument doc=Parse(id,url);
-      String b= doc.getText();
-      //search for any of the inputs in the body and return first index
-      int sIndex=b.indexOf(input);
-      if(sIndex>10)
-      {
-          
-      if(b.length()>=150)
-              {
-               snip=   b.substring(sIndex-10, sIndex+140);
-              }
-              else
-              {
-                  snip=b.substring(sIndex-10, b.length()-1);
-                  for(int i=snip.length()-1;i<160;i++)
-                      snip+='.';
-              }
-          }
-          else
-          {
-              if(b.length()>=150)
-              {
-               snip=   b.substring(sIndex, sIndex+150);
-              }
-              else
-              {
-                  snip=b.substring(sIndex, b.length()-1);
-                  if(snip.length()<150)
-                      snip+="...";
-              }
-          }
-      
-      
-      return snip;
+////      String b= doc.getText();
+//      //search for any of the inputs in the body and return first index
+//      int sIndex=b.indexOf(input);
+//      if(sIndex>10)
+//      {
+//          
+//      if(b.length()>=150)
+//              {
+//               snip=   b.substring(sIndex-10, sIndex+140);
+//              }
+//              else
+//              {
+//                  snip=b.substring(sIndex-10, b.length()-1);
+//                  for(int i=snip.length()-1;i<160;i++)
+//                      snip+='.';
+//              }
+//          }
+//          else
+//          {
+//              if(b.length()>=150)
+//              {
+//               snip=   b.substring(sIndex, sIndex+150);
+//              }
+//              else
+//              {
+//                  snip=b.substring(sIndex, b.length()-1);
+//                  if(snip.length()<150)
+//                      snip+="...";
+//              }
+//          }
+//      
+//      
+     return snip;
   }
             
             

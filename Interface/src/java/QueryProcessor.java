@@ -72,7 +72,7 @@ public class QueryProcessor {
            return results;
  }
  
- public Result[] formResult( ArrayList<Document> documents, List<String> queryInput) throws IOException
+ public Result[] formResult( ArrayList<Document> documents, List<String> queryInput) throws IOException//for nonphrase search
 {
     Result[] results=new Result[documents.size()];
            int i=0;
@@ -83,8 +83,8 @@ public class QueryProcessor {
                   String snip=Parser.getSnippet(id,url,queryInput );
                   results[i]=new Result(id,((double)d.get("score")),url);  
                   results[i].setTitle(Parser.htmlTitle(pagesPath+id+".html"));
-                 results[i].setSnippet(snip);
-                 System.out.println(snip);
+                  results[i].setSnippet(snip);
+                //  System.out.println(snip);
                           i++;  
                         
             }

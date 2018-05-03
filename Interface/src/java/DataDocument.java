@@ -17,7 +17,9 @@ public class DataDocument {
     private Integer id;
     private Set<String> titleKeywords;
     private Set<String> metaKeywords;
+    String description;
     private String text;
+    String title;
 
     public DataDocument(Integer id, String url, String html) {
 
@@ -26,19 +28,18 @@ public class DataDocument {
 
 
         // Extract title
-        String title = parsedHtml.title().toLowerCase().replaceAll("[^a-z0-9]", " ");
-        parsedText.append(title).append(" ");
+       title = parsedHtml.title().toLowerCase().replaceAll("[^a-z0-9]", " ");
 
         // Extract meta keywords
 
         String metaKeywords = "";
         for(Element metaTag: parsedHtml.getElementsByTag("meta")) {
-            if (metaTag.attr("name").equals("keywords")) {
-                metaKeywords = metaTag.attr("content").toLowerCase().replaceAll("[^a-z0-9]", " ");
+            if (metaTag.attr("name").equals("description")) {
+                metaKeywords = metaTag.attr("content");
+                description=metaKeywords;
                 break;
             }
         }
-        parsedText.append(metaKeywords).append(" ");
 
         // Extract text
         parsedHtml.body().traverse(new NodeVisitor() {
@@ -75,9 +76,15 @@ public class DataDocument {
     public Set<String> getMetaKeywords() {
         return metaKeywords;
     }
+    public String getDescription(){
+        return description;
+    }
 
-    public String getText() {
+    public String getBody() {
         return text;
+    }
+    public String getTitle(){
+        return title;
     }
 
 }
